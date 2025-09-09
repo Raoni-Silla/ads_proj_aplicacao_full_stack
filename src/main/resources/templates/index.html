@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Gastos</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input, select, button { padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .despesa { color: #d9534f; }
+        .receita { color: #5cb85c; }
+        .delete-btn { background-color: #d9534f; }
+        .delete-btn:hover { background-color: #c9302c; }
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Meu Controle de Gastos 💰</h1>
+
+    <form hx-post="/lancamentos"
+          hx-target="#lista-lancamentos"
+          hx-swap="outerHTML"
+          hx-on::after-request="this.reset()">
+        <input type="text" name="descricao" placeholder="Descrição" required>
+        <input type="number" step="0.01" name="valor" placeholder="Valor" required>
+        <select name="tipo" required>
+            <option th:each="tipoOpt : ${tipos}" th:value="${tipoOpt}" th:text="${tipoOpt}"></option>
+        </select>
+        <button type="submit">Adicionar</button>
+    </form>
+
+    <div id="lista-lancamentos" th:fragment="lista-lancamentos">
+        <table>
+            <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Ação</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="lancamento : ${lancamentos}">
+                <td th:text="${lancamento.descricao}"></td>
+                <td th:text="|R$ ${#numbers.formatDecimal(lancamento.valor, 1, 'POINT', 2, 'COMMA')}|"
+                    th:class="${lancamento.tipo.name() == 'DESPESA' ? 'despesa' : 'receita'}">
+                </td>
+                <td th:text="${#temporals.format(lancamento.data, 'dd/MM/yyyy')}"></td>
+                <td th:text="${lancamento.tipo.name()}"></td>
+                <td>
+                    <button class="delete-btn"
+                            hx-delete="@{/lancamentos/{id}(id=${lancamento.id})}"
+                            hx-target="#lista-lancamentos"
+                            hx-swap="outerHTML"
+                            hx-confirm="Tem certeza que deseja excluir?">
+                        Excluir
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
