@@ -149,5 +149,5 @@ Com esse guia, você consegue:
 
     Fazer deploy em produção com Render
 
-👨‍💻 Autor: [Seu Nome]
+👨‍💻 Autor: Raoni silla
 📌 Licença: MIT
