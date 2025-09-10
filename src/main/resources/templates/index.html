@@ -1,73 +1,262 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Gastos</title>
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input, select, button { padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
-        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
-        .despesa { color: #d9534f; }
-        .receita { color: #5cb85c; }
-        .delete-btn { background-color: #d9534f; }
-        .delete-btn:hover { background-color: #c9302c; }
+        /* CSS Variables para Temas Light/Dark */
+        :root {
+            --bg-color: #f4f5f7;
+            --card-bg-color: #ffffff;
+            --text-color: #172b4d;
+            --subtext-color: #6b778c;
+            --border-color: #dfe1e6;
+            --primary-color: #0052cc;
+            --primary-hover-color: #0065ff;
+            --green-color: #36b37e;
+            --red-color: #de350b;
+            --yellow-color: #ffab00;
+            --grey-color: #6b778c;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark {
+            --bg-color: #172b4d;
+            --card-bg-color: #283e5d;
+            --text-color: #b0c0db;
+            --subtext-color: #8c9cb5;
+            --border-color: #42526e;
+            --primary-color: #4c9aff;
+            --primary-hover-color: #69b4ff;
+        }
+
+        /* Estilos Gerais */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: var(--card-bg-color);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s;
+        }
+
+        /* Formulários */
+        form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        input, select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .add-btn { background-color: var(--primary-color); }
+        .add-btn:hover { background-color: var(--primary-hover-color); }
+
+        /* Estrutura da Lista (Flexbox) */
+        .list-header, .list-item, .edit-form-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .list-header {
+            font-weight: 600;
+            color: var(--subtext-color);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .col-desc { flex: 4; min-width: 0; }
+        .col-valor { flex: 2; min-width: 0; }
+        .col-data { flex: 2; min-width: 0; }
+        .col-tipo { flex: 2; min-width: 0; }
+        .col-acoes { flex: 3; min-width: 0; justify-content: flex-end; display: flex;}
+
+        .valor { text-align: right; }
+        .valor.despesa { color: var(--red-color); }
+        .valor.receita { color: var(--green-color); }
+
+        /* Botões de Ação */
+        .actions-wrapper { display: flex; gap: 8px; }
+        .action-btn { font-size: 12px; padding: 6px 12px; }
+        .edit-btn { background-color: var(--yellow-color); }
+        .delete-btn { background-color: var(--red-color); }
+        .save-btn { background-color: var(--green-color); }
+        .cancel-btn { background-color: var(--grey-color); }
+
+        /* Tema e Rodapé */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--subtext-color);
+        }
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--card-bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
+
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 <body>
+
+<button id="theme-toggle">🌙</button>
+
 <div class="container">
     <h1>Meu Controle de Gastos 💰</h1>
 
-    <form hx-post="/lancamentos"
-          hx-target="#lista-lancamentos"
-          hx-swap="outerHTML"
-          hx-on::after-request="this.reset()">
-        <input type="text" name="descricao" placeholder="Descrição" required>
-        <input type="number" step="0.01" name="valor" placeholder="Valor" required>
-        <select name="tipo" required>
+    <form
+            hx-post="/lancamentos"
+            hx-target="#lista-lancamentos"
+            hx-swap="innerHTML"
+            hx-on::after-request="this.reset()">
+        <input type="text" name="descricao" placeholder="Descrição" required style="flex-grow: 2;">
+        <input type="number" step="0.01" name="valor" placeholder="Valor" required style="flex-grow: 1;">
+        <select name="tipo" required style="flex-grow: 1;">
             <option th:each="tipoOpt : ${tipos}" th:value="${tipoOpt}" th:text="${tipoOpt}"></option>
         </select>
-        <button type="submit">Adicionar</button>
+        <button type="submit" class="add-btn" style="flex-grow: 1;">Adicionar</button>
     </form>
 
-    <div id="lista-lancamentos" th:fragment="lista-lancamentos">
-        <table>
-            <thead>
-            <tr>
-                <th>Descrição</th>
-                <th>Valor</th>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Ação</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="lancamento : ${lancamentos}">
-                <td th:text="${lancamento.descricao}"></td>
-                <td th:text="|R$ ${#numbers.formatDecimal(lancamento.valor, 1, 'POINT', 2, 'COMMA')}|"
-                    th:class="${lancamento.tipo.name() == 'DESPESA' ? 'despesa' : 'receita'}">
-                </td>
-                <td th:text="${#temporals.format(lancamento.data, 'dd/MM/yyyy')}"></td>
-                <td th:text="${lancamento.tipo.name()}"></td>
-                <td>
-                    <button class="delete-btn"
-                            hx-delete="@{/lancamentos/{id}(id=${lancamento.id})}"
-                            hx-target="#lista-lancamentos"
-                            hx-swap="outerHTML"
-                            hx-confirm="Tem certeza que deseja excluir?">
-                        Excluir
-                    </button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+    <div id="lista-lancamentos">
+        <div th:fragment="lista-lancamentos">
+            <div class="list-header">
+                <div class="col-desc">Descrição</div>
+                <div class="col-valor">Valor</div>
+                <div class="col-data">Data</div>
+                <div class="col-tipo">Tipo</div>
+                <div class="col-acoes">Ações</div>
+            </div>
+
+            <div th:each="lancamento : ${lancamentos}" th:id="'lancamento-' + ${lancamento.id}" class="list-item">
+                <div class="col-desc" th:text="${lancamento.descricao}"></div>
+                <div class="col-valor valor" th:text="|R$ ${#numbers.formatDecimal(lancamento.valor, 1, 'POINT', 2, 'COMMA')}|"
+                     th:classappend="${lancamento.tipo.name() == 'DESPESA' ? 'despesa' : 'receita'}">
+                </div>
+                <div class="col-data" th:text="${#temporals.format(lancamento.data, 'dd/MM/yyyy')}"></div>
+                <div class="col-tipo" th:text="${lancamento.tipo.name()}"></div>
+                <div class="col-acoes">
+                    <div class="actions-wrapper">
+                        <button class="action-btn edit-btn"
+                                th:hx-get="@{/lancamentos/editar/{id}(id=${lancamento.id})}"
+                                th:hx-target="'#lancamento-' + ${lancamento.id}"
+                                hx-swap="outerHTML">
+                            Alterar
+                        </button>
+                        <button class="action-btn delete-btn"
+                                th:hx-delete="@{/lancamentos/{id}(id=${lancamento.id})}"
+                                hx-target="#lista-lancamentos"
+                                hx-swap="innerHTML"
+                                hx-confirm="Tem certeza que deseja excluir?">
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="footer">
+    Softhouse(c)2025
+</div>
+
+<div style="display: none;">
+    <th:block th:fragment="form-edicao">
+        <div th:id="'lancamento-' + ${lancamentoParaEditar.id}" class="edit-form-row">
+            <div class="col-desc">
+                <input type="text" name="descricao" th:value="${lancamentoParaEditar.descricao}">
+            </div>
+            <div class="col-valor">
+                <input type="number" step="0.01" name="valor" th:value="${lancamentoParaEditar.valor}">
+            </div>
+            <div class="col-data">
+                <input type="date" name="data" th:value="${#temporals.format(lancamentoParaEditar.data, 'yyyy-MM-dd')}">
+            </div>
+            <div class="col-tipo">
+                <select name="tipo">
+                    <option th:each="tipoOpt : ${tipos}"
+                            th:value="${tipoOpt}"
+                            th:text="${tipoOpt}"
+                            th:selected="${tipoOpt == lancamentoParaEditar.tipo}"></option>
+                </select>
+            </div>
+            <div class="col-acoes">
+                <div class="actions-wrapper">
+                    <button class="action-btn save-btn"
+                            th:hx-put="@{/lancamentos/{id}(id=${lancamentoParaEditar.id})}"
+                            hx-target="#lista-lancamentos"
+                            hx-swap="innerHTML"
+                            hx-include="closest .edit-form-row">
+                        Salvar
+                    </button>
+                    <button class="action-btn cancel-btn"
+                            th:hx-get="@{/}"
+                            hx-target="#lista-lancamentos"
+                            hx-swap="innerHTML">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</div>
+
+<script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    themeToggle.addEventListener('click', () => {
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            themeToggle.textContent = '🌙';
+        } else {
+            html.classList.remove('light');
+            html.classList.add('dark');
+            themeToggle.textContent = '☀️';
+        }
+    });
+</script>
+
 </body>
 </html>
